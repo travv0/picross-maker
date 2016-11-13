@@ -1,7 +1,6 @@
 (in-package :picross-maker)
 
 (defparameter *site-name* "Picross Maker")
-(defparameter *favicon-path* "/static/favicon.png")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *head*
@@ -9,15 +8,11 @@
       (:meta :name "viewport"
              :content "width=device-width, initial-scale=1, maximum-scale=1")
 
-      (:link :rel "shortcut icon"
-             :type "image/png"
-             :href *favicon-path*)
-
-      (:link :rel "stylesheet"
-             :href "static/style.css")
-
-      (:script :src "//code.jquery.com/jquery-1.11.0.min.js")
-      (:script :src "/static/picross.js"))))
+      (:link :rel "stylesheet" :href "/style.css")
+      (:script :src "https://code.jquery.com/jquery-3.1.1.min.js"
+               :integrity "sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8 "
+               :crossorigin "anonymous")
+      (:script :src "/picross.js"))))
 
 ;;; The basic format that every viewable page will follow.
 (defmacro standard-page ((&key title) &body body)
@@ -32,11 +27,10 @@
                                   *site-name*))
              ,@*head*)
       (:body
-       (:div :style "overflow-x: hidden;"
-             (:div :class "container"
-                   (unless (equal ,title "")
-                     (:h2 ,title))
-                   ,@body))))))
+       (:div
+        (unless (equal ,title "")
+          (:h2 ,title))
+        ,@body)))))
 
 ;;; this macro creates and publishes page <name> at https://your-site.com/<name>
 (defmacro publish-page (name &body body)
@@ -52,4 +46,4 @@
 (publish-page index
   (standard-page
       (:title "Picross Maker")
-    (:body (:table :id "picrossTable"))))
+    (:body (:div :id "picrossDiv"))))

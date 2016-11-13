@@ -1,0 +1,26 @@
+.picrossCell {
+    outline-style: solid;
+    outline-width: 1px;
+}
+
+.picrossCell:after {
+    content: '';
+    display: block;
+    margin-top: 100%;
+}
+
+.cellContent {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.picrossCell.active {
+    background-color: black;
+}
+
+#picrossTable {
+    width: 100%;
+}
