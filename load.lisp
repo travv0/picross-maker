@@ -7,4 +7,5 @@
 (setf *print-pretty* nil)
 
 (require "asdf")
+(asdf:load-system :web-util)
 (asdf:load-system :picross-maker)
