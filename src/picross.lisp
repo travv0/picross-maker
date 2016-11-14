@@ -63,7 +63,13 @@
             (:input :type "hidden"
                     :id "boardHeight"
                     :name "boardHeight")
-            (:input :type "submit")))))
+            (:input :type "submit")))
+    (:script "
+$(function() {
+    setUpPicross(10, 10);
+    $('#picrossForm').submit(function () { submitPicross($('#picrossDiv')); });
+});
+")))
 
 (publish-page submit-picross
   (let* ((*board-width* (parse-integer (post-parameter "boardWidth")))
@@ -91,7 +97,6 @@
       (:title "Picross Maker")
     (:body
      (:form :id "picrossForm"
-            :action "submit-solution"
             :method "post"
             (:div :id "picrossDiv")
             (:input :type "hidden"
@@ -101,17 +106,24 @@
                     :id "id"
                     :name "id"
                     :value (get-parameter "id"))
-            (:input :type "submit")))))
+            (:input :type "submit")))
+    (:script "
+$(function() {
+    setUpPicross(10, 10);
+    $('#picrossForm').submit(function () { submitSolution($('#picrossDiv')); });
+});
+")))
 
 (publish-page submit-solution
-  (let ((picross-list (post-parameter "picrossList")))
+  (let ((picross-list (get-parameter "cells")))
     (execute-query-one picross "SELECT picross_cells
                                 FROM picross
                                 WHERE picross_id = ?"
-        ((post-parameter "id"))
-      (when (equal (getf picross :|picross_cells|)
+        ((get-parameter "id"))
+      (if (equal (getf picross :|picross_cells|)
                    picross-list)
-        (with-html-string ("1"))))))
+          (with-html-string ("1"))
+          (with-html-string ("0"))))))
 
 (defun parse-picross-string (picross-string)
   (let ((result-list '()))
