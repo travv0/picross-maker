@@ -1,6 +1,8 @@
 (in-package :picross-maker)
 
 (defparameter *site-name* "Picross Maker")
+(defparameter *board-width* 10)
+(defparameter *board-height* 10)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *head*
@@ -56,16 +58,28 @@
             (:input :type "submit")))))
 
 (publish-page submit-picross
-  (let ((picross-list (parse-picross-list (post-parameter "picrossList"))))
-    (standard-page
-        (:title "")
-      (:body (:h1 (format nil "~a: ~a" (post-parameter "picrossList") picross-list))))))
+  (let* ((*board-width* (post-parameter "boardWidth"))
+         (*board-height* (post-parameter "boardHeight"))
+         (picross-grid (picross-list-to-grid (parse-picross-string (post-parameter "picrossList")))))
+    ))
 
-(defun parse-picross-list (picross-list)
+(defun parse-picross-string (picross-string)
   (let ((result-list '()))
-    (dolist (cell-name (split-sequence #\, picross-list))
+    (dolist (cell-name (split-sequence #\, picross-string))
       (setf result-list (cons (coordinates-to-list cell-name) result-list)))
     (reverse result-list)))
 
 (defun coordinates-to-list (coordinates)
   (split-sequence #\y (remove #\x coordinates)))
+
+(defun picross-list-to-grid (picross-list)
+  (let ((grid (make-hash-table)))
+    (dolist (coordinates picross-list)
+      (setf (gethash (picross-key (parse-integer (first coordinates))
+                                  (parse-integer (second coordinates)))
+                     grid)
+            t))
+    grid))
+
+(defun picross-key (x y)
+  (+ (* *board-width* y) x))
