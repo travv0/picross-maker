@@ -42,7 +42,9 @@
                                                 (concatenate 'string "/" (symbol-name name)))))
        ()
      (setf (hunchentoot:content-type*) "text/html")
-     ,@body))
+     (let (*conn*)
+       (with-db *conn*
+         ,@body))))
 
 (publish-page index
   (standard-page
@@ -66,13 +68,23 @@
 (publish-page submit-picross
   (let* ((*board-width* (parse-integer (post-parameter "boardWidth")))
          (*board-height* (parse-integer (post-parameter "boardHeight")))
-         (picross-grid (picross-list-to-grid (parse-picross-string (post-parameter "picrossList")))))
-    (standard-page
-        (:title "")
-      (:body (:h1 (format nil
-                          "~a: ~a"
-                          (post-parameter "picrossList")
-                          (parse-picross-string (post-parameter "picrossList"))))))))
+         (picross-list (post-parameter "picrossList")))
+    (execute-query-modify "INSERT INTO picross (
+                                picross_cells,
+                                picross_width,
+                                picross_height,
+                                picross_date
+                           )
+                           VALUES (
+                                ?,
+                                ?,
+                                ?,
+                                current_timestamp
+                           )"
+                          (picross-list
+                           *board-width*
+                           *board-height*)))
+  (redirect "/"))
 
 (defun parse-picross-string (picross-string)
   (let ((result-list '()))
