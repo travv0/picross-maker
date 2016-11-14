@@ -27,10 +27,9 @@
                                   *site-name*))
              ,@*head*)
       (:body
-       (:div
-        (unless (equal ,title "")
-          (:h2 ,title))
-        ,@body)))))
+       (unless (equal ,title "")
+         (:h2 ,title))
+       ,@body))))
 
 ;;; this macro creates and publishes page <name> at https://your-site.com/<name>
 (defmacro publish-page (name &body body)
@@ -46,4 +45,27 @@
 (publish-page index
   (standard-page
       (:title "Picross Maker")
-    (:body (:div :id "picrossDiv"))))
+    (:body
+     (:form :id "picrossForm"
+            :action "submit-picross"
+            :method "post"
+            (:div :id "picrossDiv")
+            (:input :type "hidden"
+                    :id "picrossList"
+                    :name "picrossList")
+            (:input :type "submit")))))
+
+(publish-page submit-picross
+  (let ((picross-list (parse-picross-list (post-parameter "picrossList"))))
+    (standard-page
+        (:title "")
+      (:body (:h1 (format nil "~a: ~a" (post-parameter "picrossList") picross-list))))))
+
+(defun parse-picross-list (picross-list)
+  (let ((result-list '()))
+    (dolist (cell-name (split-sequence #\, picross-list))
+      (setf result-list (cons (coordinates-to-list cell-name) result-list)))
+    (reverse result-list)))
+
+(defun coordinates-to-list (coordinates)
+  (split-sequence #\y (remove #\x coordinates)))
