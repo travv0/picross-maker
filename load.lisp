@@ -2,6 +2,7 @@
 
 (ql:quickload "spinneret")
 (ql:quickload "hunchentoot")
+(ql:quickload "cl-utilities")
 
 (setf *print-pretty* nil)
 

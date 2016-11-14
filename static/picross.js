@@ -1,7 +1,6 @@
 $(function() {
     $("#picrossDiv").html(newPicrossTable(10, 10));
-
-    $(".picrossCell").click(function() { toggleCell($(this)); });
+    $("#picrossForm").submit(function () { submitPicross($("#picrossDiv")); });
 });
 
 function newPicrossTable(width, height) {
@@ -11,8 +10,7 @@ function newPicrossTable(width, height) {
 	picrossTable += "<tr id='row" + y + "'>";
 
 	for (x = 0; x < width; ++x) {
-	    picrossTable += "<td class='picrossCell'>";
-	    picrossTable += "<div id='cellContent' id='x" + x + "y" + y + "'></div>";
+	    picrossTable += "<td onclick='toggleCell($(this))' class='picrossCell' id='x" + x + "y" + y + "'>";
 	    picrossTable += "</td>";
 	}
 
@@ -23,9 +21,30 @@ function newPicrossTable(width, height) {
 }
 
 function toggleCell(cell) {
-    console.log("toggling");
     if (cell.hasClass("active"))
 	cell.removeClass("active");
     else
 	cell.addClass("active");
+}
+
+function submitPicross(picross) {
+    $("#picrossList").val(makePicrossList(picross));
+
+    return true;
+}
+
+function makePicrossList(picross) {
+    var picrossList = "";
+
+    $("#picrossTable tr").each(function() {
+	$('td', this).each(function() {
+	    if ($(this).hasClass("active")) {
+		if (picrossList !== "")
+		    picrossList += ",";
+		picrossList += $(this)[0].id;
+	    }
+	});
+    });
+
+    return picrossList;
 }
