@@ -1,8 +1,3 @@
-$(function() {
-    setUpPicross(10, 10);
-    $("#picrossForm").submit(function () { submitPicross($("#picrossDiv")); });
-});
-
 function setUpPicross(width, height) {
     $("#picrossDiv").html(newPicrossTable(width, height));
     $("#boardWidth").val(width);
@@ -37,6 +32,25 @@ function submitPicross(picross) {
     $("#picrossList").val(makePicrossList(picross));
 
     return true;
+}
+
+function submitSolution(picross) {
+    $.get("/submit-solution?id=" + getParameterByName("id") + "&cells=" + makePicrossList(picross),
+	  function(data) {
+	      alert(data);
+	  });
+}
+
+function getParameterByName(name, url) {
+    if (!url) {
+	url = window.location.href;
+    }
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+	results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
 function makePicrossList(picross) {
