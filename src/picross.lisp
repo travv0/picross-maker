@@ -55,13 +55,24 @@
             (:input :type "hidden"
                     :id "picrossList"
                     :name "picrossList")
+            (:input :type "hidden"
+                    :id "boardWidth"
+                    :name "boardWidth")
+            (:input :type "hidden"
+                    :id "boardHeight"
+                    :name "boardHeight")
             (:input :type "submit")))))
 
 (publish-page submit-picross
-  (let* ((*board-width* (post-parameter "boardWidth"))
-         (*board-height* (post-parameter "boardHeight"))
+  (let* ((*board-width* (parse-integer (post-parameter "boardWidth")))
+         (*board-height* (parse-integer (post-parameter "boardHeight")))
          (picross-grid (picross-list-to-grid (parse-picross-string (post-parameter "picrossList")))))
-    ))
+    (standard-page
+        (:title "")
+      (:body (:h1 (format nil
+                          "~a: ~a"
+                          (post-parameter "picrossList")
+                          (parse-picross-string (post-parameter "picrossList"))))))))
 
 (defun parse-picross-string (picross-string)
   (let ((result-list '()))
