@@ -1,7 +1,13 @@
 $(function() {
-    $("#picrossDiv").html(newPicrossTable(10, 10));
+    setUpPicross(10, 10);
     $("#picrossForm").submit(function () { submitPicross($("#picrossDiv")); });
 });
+
+function setUpPicross(width, height) {
+    $("#picrossDiv").html(newPicrossTable(width, height));
+    $("#boardWidth").val(width);
+    $("#boardHeight").val(height);
+}
 
 function newPicrossTable(width, height) {
     var picrossTable = "<table id='picrossTable'>";
