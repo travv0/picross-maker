@@ -86,6 +86,33 @@
                            *board-height*)))
   (redirect "/"))
 
+(publish-page picross
+  (standard-page
+      (:title "Picross Maker")
+    (:body
+     (:form :id "picrossForm"
+            :action "submit-solution"
+            :method "post"
+            (:div :id "picrossDiv")
+            (:input :type "hidden"
+                    :id "picrossList"
+                    :name "picrossList")
+            (:input :type "hidden"
+                    :id "id"
+                    :name "id"
+                    :value (get-parameter "id"))
+            (:input :type "submit")))))
+
+(publish-page submit-solution
+  (let ((picross-list (post-parameter "picrossList")))
+    (execute-query-one picross "SELECT picross_cells
+                                FROM picross
+                                WHERE picross_id = ?"
+        ((post-parameter "id"))
+      (when (equal (getf picross :|picross_cells|)
+                   picross-list)
+        (with-html-string ("1"))))))
+
 (defun parse-picross-string (picross-string)
   (let ((result-list '()))
     (dolist (cell-name (split-sequence #\, picross-string))
