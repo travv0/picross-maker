@@ -102,3 +102,11 @@ function toggleMode() {
 	$("#modeLink").text("switch to mark mode");
     }
 }
+
+function validatePicross(picross) {
+    $.get("/validate-picross?cells=" + makePicrossList(picross),
+	  function(data) {
+	      console.log(data);
+	      return data === "1" ? true : false;
+	  });
+}
