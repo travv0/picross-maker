@@ -9,6 +9,10 @@
     margin-top: 100%;
 }
 
+.picrossContent {
+
+}
+
 .picrossCell.active {
     background-color: black;
 }
