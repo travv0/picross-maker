@@ -1,8 +1,8 @@
 (in-package :picross-maker)
 
 (defparameter *site-name* "Picross Maker")
-(defparameter *board-width* 10)
-(defparameter *board-height* 10)
+(defparameter *board-width* 5)
+(defparameter *board-height* 5)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *head*
@@ -70,12 +70,14 @@
                     :id "picrossList"
                     :name "picrossList")
             (:input :type "submit")))
-    (:script "
+    (:script (format nil "
 $(function() {
-    setUpPicross(10, 10);
+    setUpPicross(~d, ~d);
     $('#picrossForm').submit(function () { submitPicross($('#picrossDiv')); });
 });
-")))
+"
+                     *board-width*
+                     *board-height*))))
 
 (defmacro defhtml (name params &body body)
   `(defun ,name ,params
