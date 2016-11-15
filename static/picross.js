@@ -22,10 +22,28 @@ function newPicrossTable(width, height) {
 }
 
 function toggleCell(cell) {
+    if ($("#mode").val() === "play")
+	playCell(cell);
+    else
+	markCell(cell);
+}
+
+function playCell(cell) {
     if (cell.hasClass("active"))
 	cell.removeClass("active");
     else
 	cell.addClass("active");
+}
+
+function markCell(cell) {
+    if (cell.hasClass("marked")) {
+	cell.removeClass("marked");
+	cell.text("");
+    }
+    else {
+	cell.addClass("marked");
+	cell.text("X");
+    }
 }
 
 function submitPicross(picross) {
@@ -72,4 +90,15 @@ function makePicrossList(picross) {
 function updatePicrossTable() {
     $("#picrossDiv").html(newPicrossTable(parseInt($("#boardWidth").val()),
 					  parseInt($("#boardHeight").val())));
+}
+
+function toggleMode() {
+    if ($("#mode").val() === "play") {
+	$("#mode").val("mark");
+	$("#modeLink").text("switch to play mode");
+    }
+    else {
+	$("#mode").val("play");
+	$("#modeLink").text("switch to mark mode");
+    }
 }

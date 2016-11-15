@@ -118,6 +118,7 @@ $(function() {
       (standard-page
           (:title "Picross Maker")
         (:body
+         (mode-toggle)
          (:form :id "picrossForm"
                 :method "post"
                 (picross-grid (picross-string-to-grid (getf picross :|picross_cells|)))
@@ -128,7 +129,21 @@ $(function() {
                         :id "id"
                         :name "id"
                         :value (get-parameter "id"))
-                (:input :type "submit")))))))
+                (:input :type "submit")))
+        (:script "
+$(function() {
+    $('#picrossForm').submit(function () { submitSolution($('#picrossDiv')); });
+});
+")))))
+
+(defhtml mode-toggle ()
+  (:a :href "#"
+      :id "modeLink"
+      :onclick "toggleMode()"
+      "switch to mark mode")
+  (:input :type "hidden"
+          :id "mode"
+          :value "play"))
 
 (defhtml picross-grid (grid)
   (let ((column-counts (get-column-counts grid))
@@ -148,7 +163,8 @@ $(function() {
                    (dotimes (x *board-width*)
                      (:td :onclick "toggleCell($(this))"
                           :class "picrossCell"
-                          :id (format nil "x~dy~d" x y))))))))
+                          :id (format nil "x~dy~d" x y)
+                          (:div :class "cellContent"))))))))
 
 (publish-page submit-solution
   (let ((picross-list (get-parameter "cells")))
