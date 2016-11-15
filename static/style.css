@@ -16,3 +16,16 @@
 #picrossTable {
     width: 100%;
 }
+
+.columnCounts {
+    text-align: center;
+    vertical-align: bottom;
+}
+
+.rowCounts {
+    width: 10%;
+}
+
+.rowCountsDiv {
+    float: right;
+}

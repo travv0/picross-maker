@@ -85,9 +85,9 @@ $(function() {
                                     i))))
 
 (publish-page submit-picross
-  (let* ((*board-width* (parse-integer (post-parameter "boardWidth")))
-         (*board-height* (parse-integer (post-parameter "boardHeight")))
-         (picross-list (post-parameter "picrossList")))
+  (let ((*board-width* (parse-integer (post-parameter "boardWidth")))
+        (*board-height* (parse-integer (post-parameter "boardHeight")))
+        (picross-list (post-parameter "picrossList")))
     (execute-query-modify "INSERT INTO picross (
                                 picross_cells,
                                 picross_width,
@@ -106,34 +106,49 @@ $(function() {
   (redirect "/"))
 
 (publish-page picross
-  (standard-page
-      (:title "Picross Maker")
-    (:body
-     (:form :id "picrossForm"
-            :method "post"
-            (:div :id "picrossDiv")
-            (:input :type "hidden"
-                    :id "picrossList"
-                    :name "picrossList")
-            (:input :type "hidden"
-                    :id "id"
-                    :name "id"
-                    :value (get-parameter "id"))
-            (:input :type "submit")))
-    (execute-query-one picross
-        "SELECT picross_width,
-                picross_height
-         FROM picross
-         WHERE picross_id = ?"
-        ((get-parameter "id"))
-      (:script (format nil "
-$(function() {
-    setUpPicross(~d, ~d);
-    $('#picrossForm').submit(function () { submitSolution($('#picrossDiv')); });
-});
-"
-                       (getf picross :|picross_width|)
-                       (getf picross :|picross_height|))))))
+  (execute-query-one picross
+      "SELECT picross_width,
+              picross_height,
+              picross_cells
+       FROM picross
+       WHERE picross_id = ?"
+      ((get-parameter "id"))
+    (let* ((*board-width* (getf picross :|picross_width|))
+           (*board-height* (getf picross :|picross_height|)))
+      (standard-page
+          (:title "Picross Maker")
+        (:body
+         (:form :id "picrossForm"
+                :method "post"
+                (picross-grid (picross-string-to-grid (getf picross :|picross_cells|)))
+                (:input :type "hidden"
+                        :id "picrossList"
+                        :name "picrossList")
+                (:input :type "hidden"
+                        :id "id"
+                        :name "id"
+                        :value (get-parameter "id"))
+                (:input :type "submit")))))))
+
+(defhtml picross-grid (grid)
+  (let ((column-counts (get-column-counts grid))
+        (row-counts (get-row-counts grid)))
+    (:table :id "picrossTable"
+            (:tr :class "columnCounts"
+                 (:td)
+                 (dotimes (x *board-width*)
+                   (:td (loop for count in (gethash x column-counts)
+                              collect (:span count (:br))))))
+            (dotimes (y *board-height*)
+              (:tr :id (format nil "row~d" y)
+                   (:td :class "rowCounts"
+                        (:div :class "rowCountsDiv"
+                              (loop for count in (gethash y row-counts)
+                                    collect (:span count ("&nbsp;")))))
+                   (dotimes (x *board-width*)
+                     (:td :onclick "toggleCell($(this))"
+                          :class "picrossCell"
+                          :id (format nil "x~dy~d" x y))))))))
 
 (publish-page submit-solution
   (let ((picross-list (get-parameter "cells")))
@@ -145,6 +160,9 @@ $(function() {
                  picross-list)
           (with-html-string ("1"))
           (with-html-string ("0"))))))
+
+(defun picross-string-to-grid (picross-string)
+  (picross-list-to-grid (parse-picross-string picross-string)))
 
 (defun parse-picross-string (picross-string)
   (let ((result-list '()))
@@ -166,3 +184,44 @@ $(function() {
 
 (defun picross-key (x y)
   (+ (* *board-width* y) x))
+
+(defun get-column-counts (grid)
+  (let ((column-counts (make-hash-table)))
+    (dotimes (x *board-width*)
+      (let ((count 0)
+            (counts '()))
+        (dotimes (y *board-height*)
+          (if (picross-lookup grid x y)
+              (incf count)
+              (unless (= count 0)
+                (setf counts (cons count counts))
+                (setf count 0))))
+        (unless (= count 0)
+          (setf counts (cons count counts))
+          (setf count 0))
+        (setf (gethash x column-counts) (if counts
+                                            (reverse counts)
+                                            '(0)))))
+    column-counts))
+
+(defun get-row-counts (grid)
+  (let ((row-counts (make-hash-table)))
+    (dotimes (y *board-height*)
+      (let ((count 0)
+            (counts '()))
+        (dotimes (x *board-width*)
+          (if (picross-lookup grid x y)
+              (incf count)
+              (unless (= count 0)
+                (setf counts (cons count counts))
+                (setf count 0))))
+        (unless (= count 0)
+          (setf counts (cons count counts))
+          (setf count 0))
+        (setf (gethash y row-counts) (if counts
+                                         (reverse counts)
+                                         '(0)))))
+    row-counts))
+
+(defun picross-lookup (grid x y)
+  (gethash (picross-key x y) grid))
