@@ -10,10 +10,16 @@
       (:meta :name "viewport"
              :content "width=device-width, initial-scale=1, maximum-scale=1")
 
+      (:link :rel "stylesheet"
+             :href "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css")
+      (:link :rel "stylesheet"
+             :href "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css")
       (:link :rel "stylesheet" :href "/style.css")
+
       (:script :src "https://code.jquery.com/jquery-3.1.1.min.js"
                :integrity "sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8 "
                :crossorigin "anonymous")
+      (:script :src "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js")
       (:script :src "/picross.js"))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -35,10 +41,11 @@
                                   *site-name*))
              ,@*head*)
       (:body
-       ,@*header*
-       (unless (equal ,title "")
-         (:h2 ,title))
-       ,@body))))
+       (:div :class "container"
+             ,@*header*
+             (unless (equal ,title "")
+               (with-html (:h2 ,title)))
+             ,@body)))))
 
 ;;; this macro creates and publishes page <name> at https://your-site.com/<name>
 (defmacro publish-page (name &body body)
@@ -60,28 +67,30 @@
   (standard-page
       (:title "")
     (:body
-     (:form :id "picrossForm"
-            :action "submit-picross"
-            :method "post"
-            (size-dropdown "boardWidth")
-            (size-dropdown "boardHeight")
-            (:div :id "picrossDiv")
-            (:input :type "hidden"
-                    :id "picrossList"
-                    :name "picrossList")
-            (:input :type "submit")))
-    (:script (format nil "
+     (row
+       (:div :class "col-xs-12 col-sm-8"
+             (:form :id "picrossForm"
+                    :action "submit-picross"
+                    :method "post"
+                    (size-dropdown "boardWidth")
+                    (size-dropdown "boardHeight")
+                    (:div :id "picrossDiv")
+                    (:input :type "hidden"
+                            :id "picrossList"
+                            :name "picrossList")
+                    (:input :type "submit"))))
+     (:script (format nil "
 $(function() {
     setUpPicross(~d, ~d);
     $('#picrossForm').submit(function (event) {
-        if (validatePicross($('#picrossDiv'))) {
+        //if (validatePicross($('#picrossDiv'))) {
             submitPicross($('#picrossDiv'));
-        }
+        //}
     });
 });
 "
-                     *board-width*
-                     *board-height*))))
+                      *board-width*
+                      *board-height*)))))
 
 (defmacro defhtml (name params &body body)
   `(defun ,name ,params
@@ -133,18 +142,20 @@ $(function() {
       (standard-page
           (:title "")
         (:body
-         (mode-toggle)
-         (:form :id "picrossForm"
-                :method "post"
-                (picross-grid (picross-string-to-grid (getf picross :|picross_cells|)))
-                (:input :type "hidden"
-                        :id "picrossList"
-                        :name "picrossList")
-                (:input :type "hidden"
-                        :id "id"
-                        :name "id"
-                        :value (get-parameter "id"))
-                (:input :type "submit")))
+         (row
+           (:div :class "col-xs-12 col-sm-8"
+                 (mode-toggle)
+                 (:form :id "picrossForm"
+                        :method "post"
+                        (picross-grid (picross-string-to-grid (getf picross :|picross_cells|)))
+                        (:input :type "hidden"
+                                :id "picrossList"
+                                :name "picrossList")
+                        (:input :type "hidden"
+                                :id "id"
+                                :name "id"
+                                :value (get-parameter "id"))
+                        (:input :type "submit")))))
         (:script "
 $(function() {
     $('#picrossForm').submit(function (event) {
