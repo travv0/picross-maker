@@ -22,10 +22,10 @@ function newPicrossTable(width, height) {
 }
 
 function toggleCell(cell) {
-    if ($("#mode").val() === "play")
-	playCell(cell);
-    else
+    if ($("#mode").val() === "mark")
 	markCell(cell);
+    else
+	playCell(cell);
 }
 
 function playCell(cell) {

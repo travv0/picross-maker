@@ -88,22 +88,24 @@ $(function() {
   (let ((*board-width* (parse-integer (post-parameter "boardWidth")))
         (*board-height* (parse-integer (post-parameter "boardHeight")))
         (picross-list (post-parameter "picrossList")))
-    (execute-query-modify "INSERT INTO picross (
-                                picross_cells,
-                                picross_width,
-                                picross_height,
-                                picross_date
-                           )
-                           VALUES (
-                                ?,
-                                ?,
-                                ?,
-                                current_timestamp
-                           )"
-                          (picross-list
-                           *board-width*
-                           *board-height*)))
-  (redirect "/"))
+    (execute-query-one picross
+        "INSERT INTO picross (
+              picross_cells,
+              picross_width,
+              picross_height,
+              picross_date
+         )
+         VALUES (
+              ?,
+              ?,
+              ?,
+              current_timestamp
+         )
+         RETURNING picross_id"
+        (picross-list
+         *board-width*
+         *board-height*)
+      (redirect (format nil "/picross?id=~d" (getf picross :|picross_id|))))))
 
 (publish-page picross
   (execute-query-one picross
