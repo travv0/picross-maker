@@ -16,6 +16,12 @@
                :crossorigin "anonymous")
       (:script :src "/picross.js"))))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defparameter *header*
+    '((:header :class "header"
+       (:h1 (:a :href "/"
+             "Picross Maker"))))))
+
 ;;; The basic format that every viewable page will follow.
 (defmacro standard-page ((&key title) &body body)
   `(with-html-string
@@ -29,6 +35,7 @@
                                   *site-name*))
              ,@*head*)
       (:body
+       ,@*header*
        (unless (equal ,title "")
          (:h2 ,title))
        ,@body))))
@@ -51,7 +58,7 @@
 
 (publish-page index
   (standard-page
-      (:title "Picross Maker")
+      (:title "")
     (:body
      (:form :id "picrossForm"
             :action "submit-picross"
@@ -118,7 +125,7 @@ $(function() {
     (let* ((*board-width* (getf picross :|picross_width|))
            (*board-height* (getf picross :|picross_height|)))
       (standard-page
-          (:title "Picross Maker")
+          (:title "")
         (:body
          (mode-toggle)
          (:form :id "picrossForm"
