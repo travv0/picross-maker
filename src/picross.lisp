@@ -73,7 +73,11 @@
     (:script (format nil "
 $(function() {
     setUpPicross(~d, ~d);
-    $('#picrossForm').submit(function () { submitPicross($('#picrossDiv')); });
+    $('#picrossForm').submit(function (event) {
+        if (validatePicross($('#picrossDiv'))) {
+            submitPicross($('#picrossDiv'));
+        }
+    });
 });
 "
                      *board-width*
@@ -143,7 +147,10 @@ $(function() {
                 (:input :type "submit")))
         (:script "
 $(function() {
-    $('#picrossForm').submit(function () { submitSolution($('#picrossDiv')); });
+    $('#picrossForm').submit(function (event) {
+        submitSolution($('#picrossDiv'));
+        event.preventDefault();
+    });
 });
 ")))))
 
@@ -252,3 +259,11 @@ $(function() {
 
 (defun picross-lookup (grid x y)
   (gethash (picross-key x y) grid))
+
+(publish-page validate-picross
+  (if (solve-picross (picross-string-to-grid (get-parameter "cells")))
+      (with-html-string ("1"))
+      (with-html-string ("0"))))
+
+(defun solve-picross (grid)
+  t)
