@@ -68,3 +68,8 @@ function makePicrossList(picross) {
 
     return picrossList;
 }
+
+function updatePicrossTable() {
+    $("#picrossDiv").html(newPicrossTable(parseInt($("#boardWidth").val()),
+					  parseInt($("#boardHeight").val())));
+}

@@ -46,6 +46,9 @@
        (with-db *conn*
          ,@body))))
 
+(defparameter +max-size+ 20)
+(defparameter +size-step+ 5)
+
 (publish-page index
   (standard-page
       (:title "Picross Maker")
@@ -53,16 +56,12 @@
      (:form :id "picrossForm"
             :action "submit-picross"
             :method "post"
+            (size-dropdown "boardWidth")
+            (size-dropdown "boardHeight")
             (:div :id "picrossDiv")
             (:input :type "hidden"
                     :id "picrossList"
                     :name "picrossList")
-            (:input :type "hidden"
-                    :id "boardWidth"
-                    :name "boardWidth")
-            (:input :type "hidden"
-                    :id "boardHeight"
-                    :name "boardHeight")
             (:input :type "submit")))
     (:script "
 $(function() {
@@ -70,6 +69,20 @@ $(function() {
     $('#picrossForm').submit(function () { submitPicross($('#picrossDiv')); });
 });
 ")))
+
+(defmacro defhtml (name params &body body)
+  `(defun ,name ,params
+     (with-html
+       ,@body)))
+
+(defhtml size-dropdown (name)
+  (:select :id name
+           :name name
+           :onchange "updatePicrossTable()"
+           (loop for i from +size-step+ to +max-size+
+                 when (= (mod i +size-step+) 0)
+                   collect (:option :value i
+                                    i))))
 
 (publish-page submit-picross
   (let* ((*board-width* (parse-integer (post-parameter "boardWidth")))
@@ -107,12 +120,20 @@ $(function() {
                     :name "id"
                     :value (get-parameter "id"))
             (:input :type "submit")))
-    (:script "
+    (execute-query-one picross
+        "SELECT picross_width,
+                picross_height
+         FROM picross
+         WHERE picross_id = ?"
+        ((get-parameter "id"))
+      (:script (format nil "
 $(function() {
-    setUpPicross(10, 10);
+    setUpPicross(~d, ~d);
     $('#picrossForm').submit(function () { submitSolution($('#picrossDiv')); });
 });
-")))
+"
+                       (getf picross :|picross_width|)
+                       (getf picross :|picross_height|))))))
 
 (publish-page submit-solution
   (let ((picross-list (get-parameter "cells")))
@@ -121,7 +142,7 @@ $(function() {
                                 WHERE picross_id = ?"
         ((get-parameter "id"))
       (if (equal (getf picross :|picross_cells|)
-                   picross-list)
+                 picross-list)
           (with-html-string ("1"))
           (with-html-string ("0"))))))
 
