@@ -38,11 +38,11 @@ function playCell(cell) {
 function markCell(cell) {
     if (cell.hasClass("marked")) {
 	cell.removeClass("marked");
-	cell.text("");
+	$("div", cell).text("");
     }
     else {
 	cell.addClass("marked");
-	cell.text("X");
+	$("div", cell).text("X");
     }
 }
 

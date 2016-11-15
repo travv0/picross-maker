@@ -1,6 +1,7 @@
 .picrossCell {
     outline-style: solid;
     outline-width: 1px;
+    position: relative;
 }
 
 .picrossCell:after {
@@ -9,8 +10,12 @@
     margin-top: 100%;
 }
 
-.picrossContent {
-
+.cellContent {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
 .picrossCell.active {
