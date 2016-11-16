@@ -143,8 +143,13 @@ $(function() {
           (:title "")
         (:body
          (row
+           (col 6
+             (mode-toggle))
+           (col 6
+             (:div "Penalties: "
+                   (:span :id "penaltyCounter" "0"))))
+         (row
            (:div :class "col-xs-12 col-sm-8"
-                 (mode-toggle)
                  (:form :id "picrossForm"
                         :method "post"
                         (picross-grid (picross-string-to-grid (getf picross :|picross_cells|)))
@@ -278,3 +283,17 @@ $(function() {
 
 (defun solve-picross (grid)
   t)
+
+(publish-page check-cell
+  (execute-query-one picross "SELECT picross_cells
+                              FROM picross
+                              WHERE picross_id = ?"
+      ((get-parameter "id"))
+    (if (cell-in-list-p (get-parameter "cell")
+                        (getf picross :|picross_cells|))
+        (with-html-string ("1"))
+        (with-html-string ("0")))))
+
+(defun cell-in-list-p (cell list)
+  (search (concatenate 'string "," cell ",")
+          (concatenate 'string "," list ",")))

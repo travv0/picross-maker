@@ -25,14 +25,11 @@ function toggleCell(cell) {
     if ($("#mode").val() === "mark")
 	markCell(cell);
     else
-	playCell(cell);
+	playIfCorrect(cell);
 }
 
 function playCell(cell) {
-    if (cell.hasClass("active"))
-	cell.removeClass("active");
-    else
-	cell.addClass("active");
+    cell.addClass("active");
 }
 
 function markCell(cell) {
@@ -44,6 +41,29 @@ function markCell(cell) {
 	cell.addClass("marked");
 	$("div", cell).text("X");
     }
+}
+
+function givePenalty() {
+    $("#penaltyCounter").text(parseInt($("#penaltyCounter").text()) + 1);
+}
+
+function playIfCorrect(cell) {
+    $.ajax({
+	url: "/check-cell?id=" + getParameterByName("id") + "&cell=" + cell.attr("id"),
+	success: function(data) {
+	    console.log(data);
+	    if (data == 1) {
+		console.log("playing cell " + cell);
+		playCell(cell);
+	    }
+	    else {
+		console.log("marking cell " + cell);
+		givePenalty();
+		if (!cell.hasClass("marked"))
+		    markCell(cell);
+	    }
+	}
+    });
 }
 
 function submitPicross(picross) {
@@ -65,7 +85,7 @@ function getParameterByName(name, url) {
     }
     name = name.replace(/[\[\]]/g, "\\$&");
     var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-	results = regex.exec(url);
+    results = regex.exec(url);
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
