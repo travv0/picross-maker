@@ -11,7 +11,7 @@ function newPicrossTable(width, height) {
 	picrossTable += "<tr id='row" + y + "'>";
 
 	for (x = 0; x < width; ++x) {
-	    picrossTable += "<td onclick='toggleCell($(this))' class='picrossCell' id='x" + x + "y" + y + "'>";
+	    picrossTable += "<td onclick='playCell($(this))' class='picrossCell' id='x" + x + "y" + y + "'>";
 	    picrossTable += "</td>";
 	}
 
@@ -29,7 +29,10 @@ function toggleCell(cell) {
 }
 
 function playCell(cell) {
-    cell.addClass("active");
+    if (cell.hasClass("active"))
+	cell.removeClass("active");
+    else
+	cell.addClass("active");
 }
 
 function markCell(cell) {
