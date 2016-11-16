@@ -276,14 +276,6 @@ $(function() {
 (defun picross-lookup (grid x y)
   (gethash (picross-key x y) grid))
 
-(publish-page validate-picross
-  (if (solve-picross (picross-string-to-grid (get-parameter "cells")))
-      (with-html-string ("1"))
-      (with-html-string ("0"))))
-
-(defun solve-picross (grid)
-  t)
-
 (publish-page check-cell
   (execute-query-one picross "SELECT picross_cells
                               FROM picross
