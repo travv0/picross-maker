@@ -67,13 +67,21 @@
   (standard-page
       (:title "")
     (:body
-     (row
-       (:div :class "col-xs-12 col-sm-8"
-             (:form :id "picrossForm"
-                    :action "submit-picross"
-                    :method "post"
-                    (size-dropdown "boardWidth")
-                    (size-dropdown "boardHeight")
+     (:form :id "picrossForm"
+            :action "submit-picross"
+            :method "post"
+            (row
+              (:div :class "col-xs-12 col-sm-8"
+                    (:input :type "text"
+                            :name "picrossName"
+                            :id "picrossName"
+                            :required t)))
+            (row
+              (col 12
+                (size-dropdown "boardWidth")
+                (size-dropdown "boardHeight")))
+            (row
+              (:div :class "col-xs-12 col-sm-8"
                     (:div :id "picrossDiv")
                     (:input :type "hidden"
                             :id "picrossList"
@@ -83,9 +91,10 @@
 $(function() {
     setUpPicross(~d, ~d);
     $('#picrossForm').submit(function (event) {
-        //if (validatePicross($('#picrossDiv'))) {
-            submitPicross($('#picrossDiv'));
-        //}
+        if (!submitPicross($('#picrossDiv'))) {
+            event.preventDefault();
+            alert('Don\\'t forget to make your puzzle!');
+        }
     });
 });
 "
@@ -108,25 +117,27 @@ $(function() {
 
 (publish-page submit-picross
   (let ((*board-width* (parse-integer (post-parameter "boardWidth")))
-        (*board-height* (parse-integer (post-parameter "boardHeight")))
-        (picross-list (post-parameter "picrossList")))
+        (*board-height* (parse-integer (post-parameter "boardHeight"))))
     (execute-query-one picross
         "INSERT INTO picross (
               picross_cells,
               picross_width,
               picross_height,
-              picross_date
+              picross_date,
+              picross_name
          )
          VALUES (
               ?,
               ?,
               ?,
-              current_timestamp
+              current_timestamp,
+              ?
          )
          RETURNING picross_id"
-        (picross-list
+        ((post-parameter "picrossList")
          *board-width*
-         *board-height*)
+         *board-height*
+         (post-parameter "picrossName"))
       (redirect (format nil "/picross?id=~d" (getf picross :|picross_id|))))))
 
 (publish-page picross
@@ -289,3 +300,19 @@ $(function() {
 (defun cell-in-list-p (cell list)
   (search (concatenate 'string "," cell ",")
           (concatenate 'string "," list ",")))
+
+(publish-page browse
+  (standard-page
+      (:title "Browse Puzzles")
+    (:body
+     (execute-query-loop picross
+         "SELECT picross_id,
+                 picross_name
+          FROM picross
+          ORDER BY picross_date DESC"
+         ()
+       (row
+         (col 12
+           (:a :href (format nil "/picross?id=~d"
+                             (getf picross :|picross_id|))
+               (getf picross :|picross_name|))))))))

@@ -72,7 +72,7 @@ function playIfCorrect(cell) {
 function submitPicross(picross) {
     $("#picrossList").val(makePicrossList(picross));
 
-    return true;
+    return $("#picrossList").val() !== "";
 }
 
 function submitSolution(picross) {

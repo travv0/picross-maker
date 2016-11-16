@@ -38,3 +38,7 @@
 .rowCountsDiv {
     float: right;
 }
+
+#picrossName {
+    width: 100%;
+}
