@@ -207,8 +207,7 @@ $(function() {
                               (loop for count in (gethash y row-counts)
                                     collect (:span count ("&nbsp;")))))
                    (dotimes (x *board-width*)
-                     (:td :onclick "toggleCell($(this))"
-                          :class "picrossCell"
+                     (:td :class "picrossCell solve"
                           :id (format nil "x~dy~d" x y)
                           (:div :class "cellContent"))))))))
 

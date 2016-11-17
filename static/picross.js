@@ -3,6 +3,13 @@ $(function(){
 	var date = new Date($(this).html() * 1000);
 	$(this).text(date.toLocaleString());
     });
+
+    $(".picrossCell.solve").click(function(e) {
+	if (e.shiftKey)
+	    markCell($(this));
+	else
+	    toggleCell($(this));
+    });
 });
 
 function setUpPicross(width, height) {
