@@ -26,7 +26,8 @@
   (defparameter *header*
     '((:header :class "header"
        (:h1 (:a :href "/"
-             "Picross Maker"))))))
+             "Picross Maker"))
+       (:a :href "/browse" "browse puzzles")))))
 
 ;;; The basic format that every viewable page will follow.
 (defmacro standard-page ((&key title) &body body)
@@ -307,12 +308,18 @@ $(function() {
     (:body
      (execute-query-loop picross
          "SELECT picross_id,
-                 picross_name
+                 picross_name,
+                 picross_date
           FROM picross
           ORDER BY picross_date DESC"
          ()
        (row
-         (col 12
+         (col 6
            (:a :href (format nil "/picross?id=~d"
                              (getf picross :|picross_id|))
-               (getf picross :|picross_name|))))))))
+               (getf picross :|picross_name|)))
+         (col 3
+           ("Anonymous"))
+         (col 3
+           (:span :class "time"
+                  (universal-to-unix (getf picross :|picross_date|)))))))))
