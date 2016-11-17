@@ -1,3 +1,10 @@
+$(function(){
+    $(".time").each(function(){
+	var date = new Date($(this).html() * 1000);
+	$(this).text(date.toLocaleString());
+    });
+});
+
 function setUpPicross(width, height) {
     $("#picrossDiv").html(newPicrossTable(width, height));
     $("#boardWidth").val(width);
@@ -88,7 +95,7 @@ function getParameterByName(name, url) {
     }
     name = name.replace(/[\[\]]/g, "\\$&");
     var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-    results = regex.exec(url);
+	results = regex.exec(url);
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
