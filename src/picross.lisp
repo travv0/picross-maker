@@ -187,6 +187,8 @@ $(function() {
       :id "modeLink"
       :onclick "toggleMode()"
       "switch to mark mode")
+  (:br)
+  ("(You can also shift+click to mark cells)")
   (:input :type "hidden"
           :id "mode"
           :value "play"))
