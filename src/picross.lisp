@@ -308,15 +308,21 @@ $(function() {
      (execute-query-loop picross
          "SELECT picross_id,
                  picross_name,
+                 picross_width,
+                 picross_height,
                  picross_date
           FROM picross
           ORDER BY picross_date DESC"
          ()
        (row
-         (col 6
+         (col 4
            (:a :href (format nil "/picross?id=~d"
                              (getf picross :|picross_id|))
                (getf picross :|picross_name|)))
+         (col 2
+           (:span (format nil "~dx~d"
+                          (getf picross :|picross_width|)
+                          (getf picross :|picross_height|))))
          (col 3
            ("Anonymous"))
          (col 3
