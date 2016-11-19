@@ -151,7 +151,9 @@ $(function() {
          *board-width*
          *board-height*
          (post-parameter "picrossName")
-         (get-session-var 'userid))
+         (if (get-session-var 'userid)
+             (get-session-var 'userid)
+             :null))
       (redirect (format nil "/picross?id=~d" (getf picross :|picross_id|))))))
 
 (publish-page picross
