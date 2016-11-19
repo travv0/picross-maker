@@ -160,12 +160,11 @@ $(function() {
 
 (publish-page picross
   (execute-query-one picross
-      "UPDATE picross
-       SET picross_attempt_count = picross_attempt_count + 1
-       WHERE picross_id = ?
-       RETURNING picross_width,
-                 picross_height,
-                 picross_cells"
+      "SELECT picross_width,
+              picross_height,
+              picross_cells
+      FROM picross
+      WHERE picross_id = ?"
       ((get-parameter "id"))
     (let* ((*board-width* (getf picross :|picross_width|))
            (*board-height* (getf picross :|picross_height|)))
@@ -241,11 +240,17 @@ $(function() {
                  picross-list)
           (progn (execute-query-modify
                   "UPDATE picross
-            SET picross_complete_count = picross_complete_count + 1
-            WHERE picross_id = ?"
+                   SET picross_complete_count = picross_complete_count + 1,
+                       picross_attempt_count = picross_attempt_count + 1
+                   WHERE picross_id = ?"
                   ((get-parameter "id")))
                  (with-html-string ("1")))
-          (with-html-string ("0"))))))
+          (progn (execute-query-modify
+                  "UPDATE picross
+                   SET picross_attempt_count = picross_attempt_count + 1
+                   WHERE picross_id = ?"
+                  ((get-parameter "id")))
+                 (with-html-string ("0")))))))
 
 (defun picross-string-to-grid (picross-string)
   (picross-list-to-grid (parse-picross-string picross-string)))
@@ -320,7 +325,12 @@ $(function() {
     (if (cell-in-list-p (get-parameter "cell")
                         (getf picross :|picross_cells|))
         (with-html-string ("1"))
-        (with-html-string ("0")))))
+        (progn (execute-query-modify
+                "UPDATE picross
+                 SET picross_attempt_count = picross_attempt_count + 1
+                 WHERE picross_id = ?"
+                ((get-parameter "id")))
+               (with-html-string ("0"))))))
 
 (defun cell-in-list-p (cell list)
   (search (concatenate 'string "," cell ",")
@@ -364,8 +374,9 @@ $(function() {
          (col 2
            (:span (format nil
                           "~,2f%"
-                          (picross-difficulty (getf picross :|picross_attempt_count|)
-                                              (getf picross :|picross_complete_count|)))))
+                          (- 100
+                             (picross-difficulty (getf picross :|picross_attempt_count|)
+                                                 (getf picross :|picross_complete_count|))))))
          (col 3
            (let ((user-name (getf picross :|user_name|)))
              (if (is-null user-name)
@@ -531,6 +542,6 @@ $(function() {
   (when (not (integerp completions))
     (parse-integer completions))
   (if (= attempts 0)
-      0
+      100
       (coerce (* (/ completions attempts) 100)
               'float)))
