@@ -160,11 +160,12 @@ $(function() {
 
 (publish-page picross
   (execute-query-one picross
-      "SELECT picross_width,
-              picross_height,
-              picross_cells
-      FROM picross
-      WHERE picross_id = ?"
+      "UPDATE picross
+       SET picross_view_count = picross_view_count + 1
+       WHERE picross_id = ?
+       RETURNING picross_width,
+                 picross_height,
+                 picross_cells"
       ((get-parameter "id"))
     (let* ((*board-width* (getf picross :|picross_width|))
            (*board-height* (getf picross :|picross_height|)))

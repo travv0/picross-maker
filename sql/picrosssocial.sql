@@ -12,3 +12,9 @@ ADD picross_attempt_count int;
 
 UPDATE picross
 SET picross_attempt_count = 0;
+
+ALTER TABLE picross
+ADD picross_view_count int;
+
+UPDATE picross
+SET picross_view_count = 0;
