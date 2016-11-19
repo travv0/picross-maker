@@ -1,20 +1,9 @@
 ALTER TABLE picross
-ADD user_id int,
-ADD picross_complete_count int,
-ADD picross_completable boolean;
-
-UPDATE picross
-SET picross_complete_count = 0,
-    picross_completable = false;
-
-ALTER TABLE picross
-ADD picross_attempt_count int;
-
-UPDATE picross
-SET picross_attempt_count = 0;
-
-ALTER TABLE picross
-ADD picross_view_count int;
-
-UPDATE picross
-SET picross_view_count = 0;
+DROP picross_complete_count,
+DROP picross_completable,
+DROP picross_attempt_count,
+DROP picross_view_count,
+ADD picross_complete_count int DEFAULT 0,
+ADD picross_completable boolean DEFAULT false,
+ADD picross_attempt_count int DEFAULT 0,
+ADD picross_view_count int DEFAULT 0;

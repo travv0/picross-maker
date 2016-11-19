@@ -136,8 +136,6 @@ $(function() {
               picross_height,
               picross_date,
               picross_name,
-              picross_complete_count,
-              picross_completable,
               user_id
          )
          VALUES (
@@ -146,8 +144,6 @@ $(function() {
               ?,
               current_timestamp,
               ?,
-              0,
-              false,
               ?
          )
          RETURNING picross_id"
