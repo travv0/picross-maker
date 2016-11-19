@@ -370,12 +370,15 @@ $(function() {
            (:span (format nil "~dx~d"
                           (getf picross :|picross_width|)
                           (getf picross :|picross_height|))))
-         (col 2
-           (:span (format nil
-                          "~,2f%"
-                          (- 100
-                             (picross-difficulty (getf picross :|picross_attempt_count|)
-                                                 (getf picross :|picross_complete_count|))))))
+         (col 3
+           (let ((scale 5))
+             (:span (format nil
+                            "Difficulty: ~d/~d"
+                            (round (* scale
+                                      (- 1
+                                         (picross-difficulty (getf picross :|picross_attempt_count|)
+                                                             (getf picross :|picross_complete_count|)))))
+                            scale))))
          (col 3
            (let ((user-name (getf picross :|user_name|)))
              (if (is-null user-name)
@@ -541,6 +544,6 @@ $(function() {
   (when (not (integerp completions))
     (parse-integer completions))
   (if (= attempts 0)
-      100
-      (coerce (* (/ completions attempts) 100)
+      1
+      (coerce (/ completions attempts)
               'float)))
