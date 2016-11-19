@@ -26,12 +26,14 @@
   (defparameter *header*
     '((:header :class "header"
        (:h1 (:a :href "/"
-             "Picross Maker"))
+                "Picross Maker"))
        (:a :href "/browse" "browse puzzles")
        (" | ")
        (if (logged-in-p)
            (:a :href "/b/logout" "log out")
-           (:a :href "/login" "log in"))))))
+           (progn (:a :href "/login" "log in")
+                  (" | ")
+                  (:a :href "/create-account" "create account")))))))
 
 ;;; The basic format that every viewable page will follow.
 (defmacro standard-page ((&key title) &body body)
@@ -116,9 +118,9 @@ $(function() {
            :name name
            :onchange "updatePicrossTable()"
            (loop for i from +size-step+ to +max-size+
-                 when (= (mod i +size-step+) 0)
-                   collect (:option :value i
-                                    i))))
+              when (= (mod i +size-step+) 0)
+              collect (:option :value i
+                               i))))
 
 (publish-page submit-picross
   (let ((*board-width* (parse-integer (post-parameter "boardWidth")))
@@ -212,13 +214,13 @@ $(function() {
                  (:td)
                  (dotimes (x *board-width*)
                    (:td (loop for count in (gethash x column-counts)
-                              collect (:span count (:br))))))
+                           collect (:span count (:br))))))
             (dotimes (y *board-height*)
               (:tr :id (format nil "row~d" y)
                    (:td :class "rowCounts"
                         (:div :class "rowCountsDiv"
                               (loop for count in (gethash y row-counts)
-                                    collect (:span count ("&nbsp;")))))
+                                 collect (:span count ("&nbsp;")))))
                    (dotimes (x *board-width*)
                      (:td :class "picrossCell solve"
                           :id (format nil "x~dy~d" x y)
@@ -341,7 +343,7 @@ $(function() {
          (col 3
            (let ((user-name (getf picross :|user_name|)))
              (if (is-null user-name)
-                 ("Anonymous")
+                 "Anonymous"
                  user-name)))
          (col 3
            (:span :class "time"
@@ -364,11 +366,16 @@ $(function() {
                           :onclick "window.location='../'"))))))
 
 (publish-page b/login
-  (set-password-if-unset (post-parameter "username")
-                         (post-parameter "password"))
-  (if (and (is-user-p (post-parameter "username"))
-           (is-correct-password-p (post-parameter "username")
-                                  (post-parameter "password")))
+  (let ((user-name (post-parameter "username"))
+        (password (post-parameter "password")))
+    (set-password-if-unset user-name
+                           password)
+    (login-user user-name password)))
+
+(defun login-user (user-name password)
+  (if (and (is-user-p user-name)
+           (is-correct-password-p user-name
+                                  password))
       (let ((session-id nil))
         ;; find an id not in use and set it to session-id
         (loop while (gethash
@@ -380,7 +387,7 @@ $(function() {
         ;; make life easier by making sure username in session is capitalized like in the DB
         (execute-query-one user
             "SELECT user_id, user_name FROM users WHERE lower(user_name) = lower(?)"
-            ((post-parameter "username"))
+            (user-name)
           (setf (gethash 'username (gethash session-id *sessions*)) (getf user :|user_name|))
           (setf (gethash 'userid (gethash session-id *sessions*)) (getf user :|user_id|))
           (set-user-last-login (getf user :|user_id|)))
@@ -429,7 +436,7 @@ $(function() {
         SET user_password = ?
         WHERE lower(user_name) = lower(?)"
        ((signature password)
-  user-name)))))
+        user-name)))))
 
 (publish-page b/logout
   (remhash (cookie-in *session-id-cookie-name*) *sessions*)
@@ -453,3 +460,41 @@ $(function() {
     (sha3:sha3-update state (babel:string-to-octets string :start start))
     (sha3:sha3-update state *signing-key*)
     (binascii:encode-base85 (sha3:sha3-final state))))
+
+(publish-page create-account
+  (standard-page
+      (:title "Create Account")
+    (:body
+     (:form :id "loginForm" :method "POST" :action "/b/create-account"
+            (:div (:input :id "username" :name "username" :type "text" :required t))
+            (:div (:input :id "password" :name "password" :type "password" :required t))
+            (:div (:input :type "submit"
+                          :class "btn btn-sm btn-default"
+                          :value "Submit"
+                          :onclick "submitLogin()")
+                  (:input :type "button"
+                          :value "Main Page"
+                          :class "btn btn-sm btn-default"
+                          :onclick "window.location='../'"))))))
+
+(publish-page b/create-account
+  (let ((user-name (post-parameter "username"))
+        (password (post-parameter "password")))
+    (if (not (is-user-p user-name))
+        (create-user user-name password)
+        (with-html-string (:span "user already exists")))))
+
+(defun create-user (user-name password)
+  (execute-query-modify
+   "INSERT INTO users (
+        user_name,
+        user_password,
+        user_last_login_date
+    )
+    VALUES (
+        ?,
+        ?,
+        current_timestamp
+    )"
+   (user-name (signature password)))
+  (login-user user-name password))
