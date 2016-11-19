@@ -160,11 +160,12 @@ $(function() {
 
 (publish-page picross
   (execute-query-one picross
-      "SELECT picross_width,
-              picross_height,
-              picross_cells
-       FROM picross
-       WHERE picross_id = ?"
+      "UPDATE picross
+       SET picross_attempt_count = picross_attempt_count + 1
+       WHERE picross_id = ?
+       RETURNING picross_width,
+                 picross_height,
+                 picross_cells"
       ((get-parameter "id"))
     (let* ((*board-width* (getf picross :|picross_width|))
            (*board-height* (getf picross :|picross_height|)))
@@ -238,7 +239,12 @@ $(function() {
         ((get-parameter "id"))
       (if (equal (getf picross :|picross_cells|)
                  picross-list)
-          (with-html-string ("1"))
+          (progn (execute-query-modify
+                  "UPDATE picross
+            SET picross_complete_count = picross_complete_count + 1
+            WHERE picross_id = ?"
+                  ((get-parameter "id")))
+                 (with-html-string ("1")))
           (with-html-string ("0"))))))
 
 (defun picross-string-to-grid (picross-string)
@@ -331,6 +337,8 @@ $(function() {
                          picross_width,
                          picross_height,
                          picross_date,
+                         picross_complete_count,
+                         picross_attempt_count,
                          user_name
                   FROM picross
                   LEFT JOIN users ON picross.user_id = users.user_id
@@ -344,20 +352,26 @@ $(function() {
                        "")))
          ()
        (row
-         (col 4
-           (:a :href (format nil "/picross?id=~d"
-                             (getf picross :|picross_id|))
-               (getf picross :|picross_name|)))
+         (col 12
+           (:b (:a :href (format nil "/picross?id=~d"
+                                 (getf picross :|picross_id|))
+                   (getf picross :|picross_name|)))))
+       (row
          (col 2
            (:span (format nil "~dx~d"
                           (getf picross :|picross_width|)
                           (getf picross :|picross_height|))))
+         (col 2
+           (:span (format nil
+                          "~d%"
+                          (picross-difficulty (getf picross :|picross_attempt_count|)
+                                              (getf picross :|picross_complete_count|)))))
          (col 3
            (let ((user-name (getf picross :|user_name|)))
              (if (is-null user-name)
                  "Anonymous"
                  user-name)))
-         (col 3
+         (col 4
            (:span :class "time"
                   (universal-to-unix (getf picross :|picross_date|)))))))))
 
@@ -510,3 +524,12 @@ $(function() {
     )"
    (user-name (signature password)))
   (login-user user-name password))
+
+(defun picross-difficulty (attempts completions)
+  (when (not (integerp attempts))
+    (parse-integer attempts))
+  (when (not (integerp completions))
+    (parse-integer completions))
+  (if (= attempts 0)
+      0
+      (* (/ completions attempts) 100)))
