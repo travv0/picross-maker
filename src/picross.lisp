@@ -363,7 +363,7 @@ $(function() {
                           (getf picross :|picross_height|))))
          (col 2
            (:span (format nil
-                          "~d%"
+                          "~,2f%"
                           (picross-difficulty (getf picross :|picross_attempt_count|)
                                               (getf picross :|picross_complete_count|)))))
          (col 3
@@ -532,4 +532,5 @@ $(function() {
     (parse-integer completions))
   (if (= attempts 0)
       0
-      (* (/ completions attempts) 100)))
+      (coerce (* (/ completions attempts) 100)
+              'float)))
