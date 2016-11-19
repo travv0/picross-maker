@@ -5,4 +5,7 @@
         :cl-utilities
         :hunchentoot
         :spinneret
+        :sha3
+        :binascii
+        :uuid
         :web-util))

@@ -27,7 +27,11 @@
     '((:header :class "header"
        (:h1 (:a :href "/"
              "Picross Maker"))
-       (:a :href "/browse" "browse puzzles")))))
+       (:a :href "/browse" "browse puzzles")
+       (" | ")
+       (if (logged-in-p)
+           (:a :href "/b/logout" "log out")
+           (:a :href "/login" "log in"))))))
 
 ;;; The basic format that every viewable page will follow.
 (defmacro standard-page ((&key title) &body body)
@@ -125,20 +129,27 @@ $(function() {
               picross_width,
               picross_height,
               picross_date,
-              picross_name
+              picross_name,
+              picross_complete_count,
+              picross_completable,
+              user_id
          )
          VALUES (
               ?,
               ?,
               ?,
               current_timestamp,
+              ?,
+              0,
+              false,
               ?
          )
          RETURNING picross_id"
         ((post-parameter "picrossList")
          *board-width*
          *board-height*
-         (post-parameter "picrossName"))
+         (post-parameter "picrossName")
+         (get-session-var 'userid))
       (redirect (format nil "/picross?id=~d" (getf picross :|picross_id|))))))
 
 (publish-page picross
@@ -330,3 +341,110 @@ $(function() {
          (col 3
            (:span :class "time"
                   (universal-to-unix (getf picross :|picross_date|)))))))))
+
+(publish-page login
+  (standard-page
+      (:title "Log in")
+    (:body
+     (:form :id "loginForm" :method "POST" :action "/b/login"
+            (:div (:input :id "username" :name "username" :type "text" :required t))
+            (:div (:input :id "password" :name "password" :type "password" :required t))
+            (:div (:input :type "submit"
+                          :class "btn btn-sm btn-default"
+                          :value "Submit"
+                          :onclick "submitLogin()")
+                  (:input :type "button"
+                          :value "Main Page"
+                          :class "btn btn-sm btn-default"
+                          :onclick "window.location='../'"))))))
+
+(publish-page b/login
+  (set-password-if-unset (post-parameter "username")
+                         (post-parameter "password"))
+  (if (and (is-user-p (post-parameter "username"))
+           (is-correct-password-p (post-parameter "username")
+                                  (post-parameter "password")))
+      (let ((session-id nil))
+        ;; find an id not in use and set it to session-id
+        (loop while (gethash
+                     (setf session-id (write-to-string (make-v4-uuid)))
+                     *sessions*))
+
+        (setf (gethash session-id *sessions*) (make-hash-table :test 'equal))
+
+        ;; make life easier by making sure username in session is capitalized like in the DB
+        (execute-query-one user
+            "SELECT user_id, user_name FROM users WHERE lower(user_name) = lower(?)"
+            ((post-parameter "username"))
+          (setf (gethash 'username (gethash session-id *sessions*)) (getf user :|user_name|))
+          (setf (gethash 'userid (gethash session-id *sessions*)) (getf user :|user_id|))
+          (set-user-last-login (getf user :|user_id|)))
+
+        (setf (gethash 'userlastactive (gethash session-id *sessions*)) (get-universal-time))
+
+        (set-cookie *session-id-cookie-name*
+                    :value session-id
+                    :path "/"
+                    :expires (+ (get-universal-time) (* 10 365 24 60 60)))
+        (redirect "/"))
+      (redirect "/login-failed")))
+
+(defun is-correct-password-p (user-name password)
+  (execute-query-one user
+      "SELECT user_password
+       FROM users
+       WHERE lower(user_name) = lower(?)" (user-name)
+    (equal (signature password) (getf user :|user_password|))))
+
+(defun is-user-p (user-name)
+  (execute-query-one user
+      "SELECT 1 AS user_exists
+       FROM users
+       WHERE lower(user_name) = lower(?)" (user-name)
+    (when (getf user :|user_exists|)
+      t)))
+
+(defun set-user-last-login (user-id)
+  (execute-query-modify
+   "UPDATE users
+    SET user_last_login_date = current_timestamp
+    WHERE user_id = ?" (user-id)))
+
+(defun logged-in-p ()
+  (get-session-var 'username))
+
+(defun set-password-if-unset (user-name password)
+  (execute-query-one user
+      "SELECT user_password
+       FROM users
+       WHERE lower(user_name) = lower(?)" (user-name)
+    (when (equal (getf user :|user_password|) :null)
+      (execute-query-modify
+       "UPDATE users
+        SET user_password = ?
+        WHERE lower(user_name) = lower(?)"
+       ((signature password)
+  user-name)))))
+
+(publish-page b/logout
+  (remhash (cookie-in *session-id-cookie-name*) *sessions*)
+  (redirect "/"))
+
+(defconstant +hash-size+ 32)
+(defconstant +encoded-hash-size+ (* 5/4 +hash-size+))
+
+(defvar *signing-key*)
+
+(defun randomize-signing-key ()
+  (setf *signing-key*
+        (map-into (make-array +hash-size+ :element-type '(unsigned-byte 8))
+                  (lambda () (random 256)))))
+
+(defun signature (string &key (start 0))
+  (unless (boundp '*signing-key*)
+    (log-message* :warn "Signing key is unbound.  Using Lisp's RANDOM function to initialize it.")
+    (randomize-signing-key))
+  (let ((state (sha3:sha3-init :output-bit-length (* 8 +hash-size+))))
+    (sha3:sha3-update state (babel:string-to-octets string :start start))
+    (sha3:sha3-update state *signing-key*)
+    (binascii:encode-base85 (sha3:sha3-final state))))
