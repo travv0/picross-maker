@@ -30,7 +30,11 @@
        (:a :href "/browse" "browse puzzles")
        (" | ")
        (if (logged-in-p)
-           (:a :href "/b/logout" "log out")
+           (progn (:a :href (format nil "/browse?user=~a"
+                                    (get-session-var 'username))
+                      "your puzzles")
+                  (" | ")
+                  (:a :href "/b/logout" "log out"))
            (progn (:a :href "/login" "log in")
                   (" | ")
                   (:a :href "/create-account" "create account")))))))
@@ -321,15 +325,23 @@ $(function() {
       (:title "Browse Puzzles")
     (:body
      (execute-query-loop picross
-         "SELECT picross_id,
-                 picross_name,
-                 picross_width,
-                 picross_height,
-                 picross_date,
-                 user_name
-          FROM picross
-          LEFT JOIN users ON picross.user_id = users.user_id
-          ORDER BY picross_date DESC"
+         (format nil
+                 "SELECT picross_id,
+                         picross_name,
+                         picross_width,
+                         picross_height,
+                         picross_date,
+                         user_name
+                  FROM picross
+                  LEFT JOIN users ON picross.user_id = users.user_id
+                  ~a
+                  ORDER BY picross_date DESC"
+                 (let ((user-name (get-parameter "user")))
+                   (if user-name
+                       (format nil
+                               "WHERE user_name = '~a'"
+                               (dbi.driver:escape-sql *conn* user-name))
+                       "")))
          ()
        (row
          (col 4
