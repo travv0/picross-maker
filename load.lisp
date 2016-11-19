@@ -3,6 +3,9 @@
 (ql:quickload "spinneret")
 (ql:quickload "hunchentoot")
 (ql:quickload "cl-utilities")
+(ql:quickload "sha3")
+(ql:quickload "binascii")
+(ql:quickload "uuid")
 
 (setf *print-pretty* nil)
 

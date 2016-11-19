@@ -5,6 +5,9 @@
   :depends-on ("cl-utilities"
                "hunchentoot"
                "spinneret"
+               "sha3"
+               "binascii"
+               "uuid"
                "web-util")
   :components ((:file "package")
                (:file "src/picross" :depends-on ("package"))))
