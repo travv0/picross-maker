@@ -323,8 +323,10 @@ $(function() {
                  picross_name,
                  picross_width,
                  picross_height,
-                 picross_date
+                 picross_date,
+                 user_name
           FROM picross
+          LEFT JOIN users ON picross.user_id = users.user_id
           ORDER BY picross_date DESC"
          ()
        (row
@@ -337,7 +339,10 @@ $(function() {
                           (getf picross :|picross_width|)
                           (getf picross :|picross_height|))))
          (col 3
-           ("Anonymous"))
+           (let ((user-name (getf picross :|user_name|)))
+             (if (is-null user-name)
+                 ("Anonymous")
+                 user-name)))
          (col 3
            (:span :class "time"
                   (universal-to-unix (getf picross :|picross_date|)))))))))
