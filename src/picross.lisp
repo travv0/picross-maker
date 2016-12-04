@@ -163,12 +163,13 @@ $(function() {
        WHERE picross_id = ?
        RETURNING picross_width,
                  picross_height,
-                 picross_cells"
+                 picross_cells,
+                 picross_name"
       ((get-parameter "id"))
     (let* ((*board-width* (getf picross :|picross_width|))
            (*board-height* (getf picross :|picross_height|)))
       (standard-page
-          (:title "")
+          (:title (getf picross :|picross_name|))
         (:body
          (row
            (col 6
@@ -381,7 +382,7 @@ $(function() {
                             scale))))
          (col 3
            (let ((user-name (getf picross :|user_name|)))
-             (if (is-null user-name)
+             (if (null-p user-name)
                  "Anonymous"
                  user-name)))
          (col 4
