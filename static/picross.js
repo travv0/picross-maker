@@ -4,12 +4,47 @@ $(function(){
         $(this).text(date.toLocaleString());
     });
 
-    $(".picrossCell.solve").click(function(e) {
-        if (e.shiftKey)
-            markCell($(this));
-        else
-            toggleCell($(this));
-    });
+    var clicking = false;
+    var mode = '';
+    $(".picrossCell.solve")
+        .mousedown(function(e) {
+            if (!mode) {
+                if ($(this).hasClass('marked') || $(this).hasClass('active')) mode = 'erase';
+                else if ($('#mode').val() === 'mark' || e.shiftKey) mode = 'mark';
+                else mode = 'play';
+                console.log(mode);
+            }
+            clicking = true;
+            if (mode === 'mark' &&
+                !$(this).hasClass('active') &&
+                !$(this).hasClass('marked'))
+                markCell($(this));
+            else if (mode === 'play' &&
+                     !$(this).hasClass('active') &&
+                     !$(this).hasClass('marked'))
+                toggleCell($(this));
+            else if (mode === 'erase')
+                eraseCell($(this));
+
+        })
+        .mousemove(function(e) {
+            if (clicking) {
+                if (mode === 'mark' &&
+                    !$(this).hasClass('active') &&
+                    !$(this).hasClass('marked'))
+                    markCell($(this));
+                else if (mode === 'play' &&
+                         !$(this).hasClass('active') &&
+                         !$(this).hasClass('marked'))
+                    toggleCell($(this));
+                else if (mode === 'erase')
+                    eraseCell($(this));
+            }
+        })
+        .mouseup(function() {
+            clicking = false;
+            mode = '';
+        });
 });
 
 function setUpPicross(width, height) {
@@ -36,17 +71,12 @@ function newPicrossTable(width, height) {
 }
 
 function toggleCell(cell) {
-    if ($("#mode").val() === "mark")
-        markCell(cell);
-    else
-        playIfCorrect(cell);
+    cell.addClass("active").addClass("pending");
+    playIfCorrect(cell);
 }
 
 function playCell(cell) {
-    if (cell.hasClass("active"))
-        cell.removeClass("active");
-    else
-        cell.addClass("active");
+    cell.addClass("active");
 }
 
 function markCell(cell) {
@@ -60,6 +90,11 @@ function markCell(cell) {
     }
 }
 
+function eraseCell(cell) {
+    $("div", cell).text("");
+    cell.removeClass('active').removeClass('marked');
+}
+
 function givePenalty() {
     $("#penaltyCounter").text(parseInt($("#penaltyCounter").text()) + 1);
 }
@@ -71,10 +106,12 @@ function playIfCorrect(cell) {
             console.log(data);
             if (data == 1) {
                 console.log("playing cell " + cell);
+                cell.removeClass('pending');
                 playCell(cell);
             }
             else {
                 console.log("marking cell " + cell);
+                cell.removeClass('pending').removeClass('active');
                 givePenalty();
                 if (!cell.hasClass("marked"))
                     markCell(cell);
