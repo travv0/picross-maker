@@ -1,4 +1,6 @@
 .picrossCell {
+    height: 30px;
+    width: 30px;
     outline-style: solid;
     outline-width: 1px;
     position: relative;
@@ -8,35 +10,21 @@
     -webkit-user-select: none; /* Webkit (Safari, Chrome) */
 }
 
-.picrossCell:after {
-    content: '';
-    display: block;
-    margin-top: 100%;
-}
-
-.cellContent {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-
 .picrossCell.active {
     background-color: black;
 }
 
 #picrossTable {
-    width: 100%;
+    width: 1000px;
+}
+
+#picrossTable > tbody {
+    float: left;
 }
 
 .columnCounts {
     text-align: center;
     vertical-align: bottom;
-}
-
-.rowCounts {
-    width: 10%;
 }
 
 .rowCountsDiv {
