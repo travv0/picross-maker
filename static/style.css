@@ -1,25 +1,18 @@
 .picrossCell {
     outline-style: solid;
     outline-width: 1px;
-    position: relative;
-    user-select: none; /* CSS3 (little to no support) */
-    -ms-user-select: none; /* IE 10+ */
-    -moz-user-select: none; /* Gecko (Firefox) */
-    -webkit-user-select: none; /* Webkit (Safari, Chrome) */
+    outline-color: black;
+    background: white;
 }
 
-.picrossCell:after {
+.flex-item {
+    flex: 1 0 auto;
+}
+
+.flex-item:before {
     content: '';
-    display: block;
-    margin-top: 100%;
-}
-
-.cellContent {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    float: left;
+    padding-top: 100%;
 }
 
 .picrossCell.active {
@@ -32,11 +25,12 @@
 
 .columnCounts {
     text-align: center;
-    vertical-align: bottom;
+    align-self: flex-end;
+    /* flex-direction: column; */
 }
 
 .rowCounts {
-    width: 10%;
+    /* width: 20%; */
 }
 
 .rowCountsDiv {
@@ -45,4 +39,18 @@
 
 #picrossName {
     width: 100%;
+}
+
+.flex-container {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-flow: row;
+    justify-content: space-around;
+    line-height:30px;
 }

@@ -212,22 +212,23 @@ $(function() {
 (defhtml picross-grid (grid)
   (let ((column-counts (get-column-counts grid))
         (row-counts (get-row-counts grid)))
-    (:table :id "picrossTable"
-            (:tr :class "columnCounts"
-                 (:td)
-                 (dotimes (x *board-width*)
-                   (:td (loop for count in (gethash x column-counts)
-                           collect (:span count (:br))))))
-            (dotimes (y *board-height*)
-              (:tr :id (format nil "row~d" y)
-                   (:td :class "rowCounts"
+    (:div :id "picrossTable"
+          (:div :class "flex-container columnCounts"
+                (:div :class "flex-item rowCounts")
+                (dotimes (x *board-width*)
+                  (:div :class "flex-item columnCounts"
+                        (loop for count in (gethash x column-counts)
+                              collect (:span count (:br))))))
+          (dotimes (y *board-height*)
+            (:div :class "flex-container picrossRow"
+                  :id (format nil "row~d" y)
+                  (:div :class "flex-item rowCounts"
                         (:div :class "rowCountsDiv"
                               (loop for count in (gethash y row-counts)
-                                 collect (:span count ("&nbsp;")))))
-                   (dotimes (x *board-width*)
-                     (:td :class "picrossCell solve"
-                          :id (format nil "x~dy~d" x y)
-                          (:div :class "cellContent"))))))))
+                                    collect (:span count ("&nbsp;")))))
+                  (dotimes (x *board-width*)
+                    (:div :class "flex-item picrossCell solve"
+                          :id (format nil "x~dy~d" x y))))))))
 
 (publish-page submit-solution
   (let ((picross-list (get-parameter "cells")))
@@ -381,7 +382,7 @@ $(function() {
                             scale))))
          (col 3
            (let ((user-name (getf picross :|user_name|)))
-             (if (is-null user-name)
+             (if (null-p user-name)
                  "Anonymous"
                  user-name)))
          (col 4
