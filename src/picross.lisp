@@ -102,7 +102,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     setUpPicross(~d, ~d);
     document.querySelectorAll('#picrossForm').onsubmit = function (event) {
-        if (!submitPicross(document.getElementById('#picrossDiv'))) {
+        if (!submitPicross(document.getElementById('picrossDiv'))) {
             event.preventDefault();
             alert('Don\\'t forget to make your puzzle!');
         }
@@ -191,11 +191,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 :value (get-parameter "id"))
                         (:input :type "submit")))))
         (:script "
-$(function() {
-    $('#picrossForm').submit(function (event) {
-        submitSolution($('#picrossDiv'));
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('picrossForm').onsubmit =  function (event) {
+        submitSolution(document.getElementById('picrossDiv'));
         event.preventDefault();
-    });
+    };
 });
 ")))))
 
@@ -399,7 +399,7 @@ $(function() {
             (:div (:input :type "submit"
                           :class "btn btn-sm btn-default"
                           :value "Submit"
-                          :onclick "submitLogin()")
+                          :onclick "submitLogin(this)")
                   (:input :type "button"
                           :value "Main Page"
                           :class "btn btn-sm btn-default"
