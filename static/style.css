@@ -15,7 +15,7 @@
     background-color: white;
 }
 
-#picrossTable {
+#picrossForm {
     width: 1000px;
     user-select: none; /* CSS3 (little to no support) */
     -ms-user-select: none; /* IE 10+ */

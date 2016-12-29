@@ -48,12 +48,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     eraseCell(this);
             }
         };
-
-        cell.onmouseup = function() {
-            clicking = false;
-            mode = '';
-        };
     }
+
+    document.onmouseup = function() {
+        clicking = false;
+        mode = '';
+    };
 });
 
 function setUpPicross(width, height) {
