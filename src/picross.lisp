@@ -10,16 +10,16 @@
       (:meta :name "viewport"
              :content "width=device-width, initial-scale=1")
 
-      (:link :rel "stylesheet"
-             :href "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css")
-      (:link :rel "stylesheet"
-             :href "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css")
+      ;; (:link :rel "stylesheet"
+      ;;        :href "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css")
+      ;; (:link :rel "stylesheet"
+      ;;        :href "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css")
       (:link :rel "stylesheet" :href "/style.css")
 
-      (:script :src "https://code.jquery.com/jquery-3.1.1.min.js"
-               :integrity "sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8 "
-               :crossorigin "anonymous")
-      (:script :src "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js")
+      ;; (:script :src "https://code.jquery.com/jquery-3.1.1.min.js"
+      ;;          :integrity "sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8 "
+      ;;          :crossorigin "anonymous")
+      ;; (:script :src "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js")
       (:script :src "/picross.js"))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -99,14 +99,14 @@
                             :name "picrossList")
                     (:input :type "submit"))))
      (:script (format nil "
-$(function() {
+document.addEventListener('DOMContentLoaded', function() {
     setUpPicross(~d, ~d);
-    $('#picrossForm').submit(function (event) {
-        if (!submitPicross($('#picrossDiv'))) {
+    document.querySelectorAll('#picrossForm').onsubmit = function (event) {
+        if (!submitPicross(document.getElementById('#picrossDiv'))) {
             event.preventDefault();
             alert('Don\\'t forget to make your puzzle!');
         }
-    });
+    };
 });
 "
                       *board-width*
