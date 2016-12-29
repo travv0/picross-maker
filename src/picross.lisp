@@ -10,23 +10,15 @@
       (:meta :name "viewport"
              :content "width=device-width, initial-scale=1")
 
-      (:link :rel "stylesheet"
-             :href "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css")
-      (:link :rel "stylesheet"
-             :href "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css")
       (:link :rel "stylesheet" :href "/style.css")
 
-      (:script :src "https://code.jquery.com/jquery-3.1.1.min.js"
-               :integrity "sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8 "
-               :crossorigin "anonymous")
-      (:script :src "//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js")
       (:script :src "/picross.js"))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *header*
     '((:header :class "header"
        (:h1 (:a :href "/"
-                "Picross Maker"))
+             "Picross Maker"))
        (:a :href "/browse" "browse puzzles")
        (" | ")
        (if (logged-in-p)
@@ -81,32 +73,26 @@
      (:form :id "picrossForm"
             :action "submit-picross"
             :method "post"
-            (row
-              (:div :class "col-xs-12 col-sm-8"
-                    (:input :type "text"
-                            :name "picrossName"
-                            :id "picrossName"
-                            :required t)))
-            (row
-              (col 12
-                (size-dropdown "boardWidth")
-                (size-dropdown "boardHeight")))
-            (row
-              (:div :class "col-xs-12 col-sm-8"
-                    (:div :id "picrossDiv")
-                    (:input :type "hidden"
-                            :id "picrossList"
-                            :name "picrossList")
-                    (:input :type "submit"))))
+            (:input :type "text"
+                    :name "picrossName"
+                    :id "picrossName"
+                    :required t)
+            (size-dropdown "boardWidth")
+            (size-dropdown "boardHeight")
+            (:div :id "picrossDiv")
+            (:input :type "hidden"
+                    :id "picrossList"
+                    :name "picrossList")
+            (:input :type "submit"))
      (:script (format nil "
-$(function() {
+document.addEventListener('DOMContentLoaded', function() {
     setUpPicross(~d, ~d);
-    $('#picrossForm').submit(function (event) {
-        if (!submitPicross($('#picrossDiv'))) {
+    document.getElementById('picrossForm').onsubmit = function() {
+        if (!submitPicross()) {
             event.preventDefault();
             alert('Don\\'t forget to make your puzzle!');
         }
-    });
+    };
 });
 "
                       *board-width*
@@ -122,9 +108,9 @@ $(function() {
            :name name
            :onchange "updatePicrossTable()"
            (loop for i from +size-step+ to +max-size+
-              when (= (mod i +size-step+) 0)
-              collect (:option :value i
-                               i))))
+                 when (= (mod i +size-step+) 0)
+                   collect (:option :value i
+                                    i))))
 
 (publish-page submit-picross
   (let ((*board-width* (parse-integer (post-parameter "boardWidth")))
@@ -171,31 +157,26 @@ $(function() {
       (standard-page
           (:title (getf picross :|picross_name|))
         (:body
-         (row
-           (col 6
-             (mode-toggle))
-           (col 6
-             (:div "Penalties: "
-                   (:span :id "penaltyCounter" "0"))))
-         (row
-           (:div :class "col-xs-12 col-sm-8"
-                 (:form :id "picrossForm"
-                        :method "post"
-                        (picross-grid (picross-string-to-grid (getf picross :|picross_cells|)))
-                        (:input :type "hidden"
-                                :id "picrossList"
-                                :name "picrossList")
-                        (:input :type "hidden"
-                                :id "id"
-                                :name "id"
-                                :value (get-parameter "id"))
-                        (:input :type "submit")))))
+         (mode-toggle)
+         (:div "Penalties: "
+               (:span :id "penaltyCounter" "0"))
+         (:form :id "picrossForm"
+                :method "post"
+                (picross-grid (picross-string-to-grid (getf picross :|picross_cells|)))
+                (:input :type "hidden"
+                        :id "picrossList"
+                        :name "picrossList")
+                (:input :type "hidden"
+                        :id "id"
+                        :name "id"
+                        :value (get-parameter "id"))
+                (:input :type "submit")))
         (:script "
-$(function() {
-    $('#picrossForm').submit(function (event) {
-        submitSolution($('#picrossDiv'));
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('picrossForm').onsubmit =  function (event) {
+        submitSolution(document.getElementById('picrossDiv'));
         event.preventDefault();
-    });
+    };
 });
 ")))))
 
@@ -218,13 +199,13 @@ $(function() {
                  (:td)
                  (dotimes (x *board-width*)
                    (:td (loop for count in (gethash x column-counts)
-                           collect (:span count (:br))))))
+                              collect (:span count (:br))))))
             (dotimes (y *board-height*)
               (:tr :id (format nil "row~d" y)
                    (:td :class "rowCounts"
                         (:div :class "rowCountsDiv"
                               (loop for count in (gethash y row-counts)
-                                 collect (:span count ("&nbsp;")))))
+                                    collect (:span count ("&nbsp;")))))
                    (dotimes (x *board-width*)
                      (:td :class "picrossCell solve"
                           :id (format nil "x~dy~d" x y)
@@ -361,33 +342,26 @@ $(function() {
                                (dbi.driver:escape-sql *conn* user-name))
                        "")))
          ()
-       (row
-         (col 12
-           (:b (:a :href (format nil "/picross?id=~d"
-                                 (getf picross :|picross_id|))
-                   (getf picross :|picross_name|)))))
-       (row
-         (col 2
-           (:span (format nil "~dx~d"
-                          (getf picross :|picross_width|)
-                          (getf picross :|picross_height|))))
-         (col 3
-           (let ((scale 5))
-             (:span (format nil
-                            "Difficulty: ~d/~d"
-                            (round (* scale
-                                      (- 1
-                                         (picross-difficulty (getf picross :|picross_attempt_count|)
-                                                             (getf picross :|picross_complete_count|)))))
-                            scale))))
-         (col 3
-           (let ((user-name (getf picross :|user_name|)))
-             (if (null-p user-name)
-                 "Anonymous"
-                 user-name)))
-         (col 4
-           (:span :class "time"
-                  (universal-to-unix (getf picross :|picross_date|)))))))))
+       (:b (:a :href (format nil "/picross?id=~d"
+                             (getf picross :|picross_id|))
+               (getf picross :|picross_name|)))
+       (:span (format nil "~dx~d"
+                      (getf picross :|picross_width|)
+                      (getf picross :|picross_height|)))
+       (let ((scale 5))
+         (:span (format nil
+                        "Difficulty: ~d/~d"
+                        (round (* scale
+                                  (- 1
+                                     (picross-difficulty (getf picross :|picross_attempt_count|)
+                                                         (getf picross :|picross_complete_count|)))))
+                        scale)))
+       (let ((user-name (getf picross :|user_name|)))
+         (if (null-p user-name)
+             "Anonymous"
+             user-name))
+       (:span :class "time"
+              (universal-to-unix (getf picross :|picross_date|)))))))
 
 (publish-page login
   (standard-page
@@ -399,7 +373,7 @@ $(function() {
             (:div (:input :type "submit"
                           :class "btn btn-sm btn-default"
                           :value "Submit"
-                          :onclick "submitLogin()")
+                          :onclick "submitLogin(this)")
                   (:input :type "button"
                           :value "Main Page"
                           :class "btn btn-sm btn-default"
