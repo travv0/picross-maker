@@ -321,9 +321,10 @@ document.addEventListener('DOMContentLoaded', function() {
   (standard-page
       (:title "Browse Puzzles")
     (:body
-     (execute-query-loop picross
-         (format nil
-                 "SELECT picross_id,
+     (:table
+      (execute-query-loop picross
+          (format nil
+                  "SELECT picross_id,
                          picross_name,
                          picross_width,
                          picross_height,
@@ -335,33 +336,39 @@ document.addEventListener('DOMContentLoaded', function() {
                   LEFT JOIN users ON picross.user_id = users.user_id
                   ~a
                   ORDER BY picross_date DESC"
-                 (let ((user-name (get-parameter "user")))
-                   (if user-name
-                       (format nil
-                               "WHERE user_name = '~a'"
-                               (dbi.driver:escape-sql *conn* user-name))
-                       "")))
-         ()
-       (:b (:a :href (format nil "/picross?id=~d"
-                             (getf picross :|picross_id|))
-               (getf picross :|picross_name|)))
-       (:span (format nil "~dx~d"
-                      (getf picross :|picross_width|)
-                      (getf picross :|picross_height|)))
-       (let ((scale 5))
-         (:span (format nil
-                        "Difficulty: ~d/~d"
-                        (round (* scale
-                                  (- 1
-                                     (picross-difficulty (getf picross :|picross_attempt_count|)
-                                                         (getf picross :|picross_complete_count|)))))
-                        scale)))
-       (let ((user-name (getf picross :|user_name|)))
-         (if (null-p user-name)
-             "Anonymous"
-             user-name))
-       (:span :class "time"
-              (universal-to-unix (getf picross :|picross_date|)))))))
+                  (let ((user-name (get-parameter "user")))
+                    (if user-name
+                        (format nil
+                                "WHERE user_name = '~a'"
+                                (dbi.driver:escape-sql *conn* user-name))
+                        "")))
+          ()
+        (:tr
+         (:td
+          (:b (:a :href (format nil "/picross?id=~d"
+                                (getf picross :|picross_id|))
+                  (getf picross :|picross_name|))))
+         (:td
+          (:span (format nil "~dx~d"
+                         (getf picross :|picross_width|)
+                         (getf picross :|picross_height|))))
+         (:td
+          (let ((scale 5))
+            (:span (format nil
+                           "Difficulty: ~d/~d"
+                           (round (* scale
+                                     (- 1
+                                        (picross-difficulty (getf picross :|picross_attempt_count|)
+                                                            (getf picross :|picross_complete_count|)))))
+                           scale))))
+         (:td
+          (let ((user-name (getf picross :|user_name|)))
+            (if (null-p user-name)
+                "Anonymous"
+                user-name)))
+         (:td
+          (:span :class "time"
+                 (universal-to-unix (getf picross :|picross_date|))))))))))
 
 (publish-page login
   (standard-page
