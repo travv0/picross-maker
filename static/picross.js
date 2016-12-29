@@ -1,6 +1,6 @@
 "use strict";
 
-document.addEventListener("DOMContentLoaded", function() {
+window.onload = function() {
     var i;
     var times = document.querySelectorAll(".time");
 
@@ -11,50 +11,77 @@ document.addEventListener("DOMContentLoaded", function() {
 
     var clicking = false;
     var mode = '';
-    var cells = document.querySelectorAll(".picrossCell.solve");
+    var cells = document.querySelectorAll(".picrossCell");
 
     for (i = 0; i < cells.length; i++) {
         var cell = cells[i];
 
-        cell.onmousedown = function(e) {
-            var filled = this.classList.contains('marked') ||
-                    this.classList.contains('active');
-            if (!mode) {
-                if (filled)
-                    mode = 'erase';
-                else if (document.getElementById('mode') === 'mark' ||
-                         e.shiftKey)
-                    mode = 'mark';
-                else mode = 'play';
-            }
-            clicking = true;
-            if (mode === 'mark' && !filled)
-                markCell(this);
-            else if (mode === 'play' && !filled)
-                playCell(this);
-            else if (mode === 'erase')
-                eraseCell(this);
-        };
-
-        cell.onmousemove = function(e) {
-            var filled = this.classList.contains('marked') ||
-                    this.classList.contains('active');
-            if (clicking) {
+        if (cell.classList.contains("solve")) {
+            cell.onmousedown = function(e) {
+                var filled = this.classList.contains('marked') ||
+                        this.classList.contains('active');
+                if (!mode) {
+                    if (filled)
+                        mode = 'erase';
+                    else if (document.getElementById('mode') === 'mark' ||
+                             e.shiftKey)
+                        mode = 'mark';
+                    else mode = 'play';
+                }
+                clicking = true;
                 if (mode === 'mark' && !filled)
                     markCell(this);
                 else if (mode === 'play' && !filled)
                     playCell(this);
                 else if (mode === 'erase')
                     eraseCell(this);
-            }
-        };
+            };
+
+            cell.onmousemove = function(e) {
+                var filled = this.classList.contains('marked') ||
+                        this.classList.contains('active');
+                if (clicking) {
+                    if (mode === 'mark' && !filled)
+                        markCell(this);
+                    else if (mode === 'play' && !filled)
+                        playCell(this);
+                    else if (mode === 'erase')
+                        eraseCell(this);
+                }
+            };
+        }
+        else {
+            cell.onmousedown = function() {
+                var filled = this.classList.contains('active');
+                if (!mode) {
+                    if (filled)
+                        mode = 'erase';
+                    else mode = 'play';
+                }
+                clicking = true;
+                if (mode === 'play' && !filled)
+                    toggleCell(this);
+                else if (mode === 'erase')
+                    eraseCell(this);
+            };
+
+            cell.onmousemove = function() {
+                var filled = this.classList.contains('active');
+                if (clicking) {
+                    if (mode === 'play' && !filled)
+                        toggleCell(this);
+                    else if (mode === 'erase')
+                        eraseCell(this);
+                }
+            };
+        }
     }
 
     document.onmouseup = function() {
         clicking = false;
         mode = '';
     };
-});
+};
 
 function setUpPicross(width, height) {
     document.getElementById("picrossDiv").innerHTML = newPicrossTable(width, height);
@@ -69,7 +96,7 @@ function newPicrossTable(width, height) {
         picrossTable += "<tr id='row" + y + "'>";
 
         for (var x = 0; x < width; ++x) {
-            picrossTable += "<td class='picrossCell' onclick='toggleCell(this)' id='x" + x + "y" + y + "'>";
+            picrossTable += "<td class='picrossCell' id='x" + x + "y" + y + "'>";
             picrossTable += "</td>";
         }
 
@@ -85,8 +112,7 @@ function playCell(cell) {
 }
 
 function toggleCell(cell) {
-    if (!cell.classList.contains("solve"))
-        cell.classList.toggle("active");
+    cell.classList.toggle("active");
 }
 
 function markCell(cell) {
@@ -100,7 +126,8 @@ function markCell(cell) {
 }
 
 function eraseCell(cell) {
-    cell.firstChild.innerHTML = "";
+    if (cell.classList.contains("solve"))
+        cell.firstChild.innerHTML = "";
     cell.classList.remove('active', 'marked');
 }
 
@@ -110,8 +137,6 @@ function givePenalty() {
 }
 
 function playIfCorrect(cell) {
-    cell.classList.remove("pending");
-
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == XMLHttpRequest.DONE) {
